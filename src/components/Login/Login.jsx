@@ -1,11 +1,12 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
-import React, { useState } from "react";
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
+import React, { useRef, useState } from "react";
 import { auth } from "../../firebaseInIt";
 import { Link } from "react-router";
 
 const Login = () => {
-const [success,setSuccess] = useState(false)
-const [errorMessage,setErrorMessage] = useState('')
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const emailRef = useRef();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -14,23 +15,40 @@ const [errorMessage,setErrorMessage] = useState('')
     const password = e.target.password.value;
     console.log(email, password);
 
-
     // success message
-    setSuccess(false)
+    setSuccess(false);
     // reset
-    setErrorMessage('')
-
+    setErrorMessage("");
 
     // login user
     signInWithEmailAndPassword(auth, email, password)
       .then((result) => {
         console.log(result.user);
-        setSuccess(true)
+        if (!result.user.emailVerified) {
+          alert("please verify your email adders");
+        } else {
+          setSuccess(true);
+        }
       })
       .catch((error) => {
         console.log(error);
-        setErrorMessage(error.message)
+        setErrorMessage(error.message);
       });
+  };
+
+  const handleForgotPassword = () => {
+    console.log(emailRef.current.value);
+    const email = emailRef.current.value;
+
+    setErrorMessage('')
+
+    // send password reset email
+    sendPasswordResetEmail(auth,email).then(()=>{
+      alert('password reset email is sent. check your email')
+    })
+    .catch(error =>{
+      setErrorMessage(error.message)
+    })
   };
 
   return (
@@ -42,6 +60,7 @@ const [errorMessage,setErrorMessage] = useState('')
           <input
             type="email"
             name="email"
+            ref={emailRef}
             className="input"
             placeholder="Email"
           />
@@ -52,18 +71,21 @@ const [errorMessage,setErrorMessage] = useState('')
             className="input"
             placeholder="Password"
           />
-          <div>
+          <div onClick={handleForgotPassword}>
             <a className="link link-hover">Forgot password?</a>
           </div>
           <button className="btn btn-neutral mt-4">Login</button>
         </form>
-        <p>New to this website ? Please <Link className="text-blue-500 underline" to="/signUp">Sign Up</Link></p>
-        {
-          errorMessage && <p className="text-red-500">{errorMessage}</p>
-        }
-        {
-         success &&  <p className="text-green-500">User logged in successfully</p>
-        }
+        <p>
+          New to this website ? Please{" "}
+          <Link className="text-blue-500 underline" to="/signUp">
+            Sign Up
+          </Link>
+        </p>
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {success && (
+          <p className="text-green-500">User logged in successfully</p>
+        )}
       </div>
     </div>
   );

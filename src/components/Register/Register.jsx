@@ -10,16 +10,17 @@ const Register = () => {
     console.log(email, password);
 
     // create user
-    createUserWithEmailAndPassword(auth,email,password).then(result =>{
-      console.log(result);
-    })
-    .catch(error =>{
-      console.log(error);
-    })
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return (
-    <div className="max-w-sm mx-auto mt-20">
+    <div className="max-w-sm mx-auto mt-20 shadow-2xl bg-base-100">
       <h2 className="text-xl mb-2">Register Now</h2>
       <form className="space-y-4" onSubmit={handleRegister}>
         {/* email field */}

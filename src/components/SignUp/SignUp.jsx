@@ -1,4 +1,8 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  updateProfile,
+} from "firebase/auth";
 import React, { useState } from "react";
 import { auth } from "../../firebaseInIt";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -11,17 +15,20 @@ const SignUp = () => {
 
   const handleSignUp = (e) => {
     e.preventDefault();
+
+    const name = e.target.name.value;
+    const photo = e.target.photo.value;
     const email = e.target.email.value;
     const password = e.target.password.value;
     const terms = e.target.terms.checked;
-    console.log(email, password,terms);
+    console.log(email, password, terms);
 
     setSuccess(false);
     setErrorMessage("");
 
-    if(!terms){
-      setErrorMessage('Please accept our terms and conditions')
-      return ;
+    if (!terms) {
+      setErrorMessage("Please accept our terms and conditions");
+      return;
     }
 
     // password validate
@@ -37,7 +44,26 @@ const SignUp = () => {
     createUserWithEmailAndPassword(auth, email, password)
       .then((newResult) => {
         console.log(newResult);
-        setSuccess(true);
+
+        // email verification
+        sendEmailVerification(newResult.user).then(() => {
+          setSuccess(true);
+          alert("we send you a verification email . please check your email");
+        });
+
+        // update user profile
+        const profile = {
+          displayName: name,
+          photoURL: photo,
+        };
+        updateProfile(auth.currentUser, profile)
+          .then(() => {
+            console.log("user profile updated");
+          })
+          .catch((error) => {
+            console.log(error);
+            setErrorMessage(error.message);
+          });
       })
       .catch((error) => {
         console.log(error);
@@ -50,6 +76,20 @@ const SignUp = () => {
       <div className="card-body">
         <h1 className="text-5xl font-bold">Sign Up now!</h1>
         <form onSubmit={handleSignUp} className="">
+          <label className="label">Name</label>
+          <input
+            type="email"
+            name="name"
+            className="input"
+            placeholder="Your name"
+          />
+          <label className="label">Photo URL</label>
+          <input
+            type="text"
+            name="photo"
+            className="input"
+            placeholder="Photo URL"
+          />
           <label className="label">Email</label>
           <input
             type="email"
@@ -84,7 +124,12 @@ const SignUp = () => {
           <br />
           <button className="btn btn-neutral mt-4">Sign Up</button>
         </form>
-        <p>Already have an account ? please <Link className="underline text-blue-500" to="/login">Login</Link></p>
+        <p>
+          Already have an account ? please{" "}
+          <Link className="underline text-blue-500" to="/login">
+            Login
+          </Link>
+        </p>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
         {success && (
           <p className="text-green-500">User has created successfully</p>
